@@ -1,2 +1,5 @@
-# FinalPaper
-STA304 Final Paper on Toronto Police Budget
+# starter_folder
+
+This repo....
+
+It is organised as follows...
