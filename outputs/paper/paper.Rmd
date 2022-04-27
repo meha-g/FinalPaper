@@ -3,9 +3,9 @@ title: "Salaries and Rising Police Force Budgets"
 subtitle: "An Exploratory Analysis on Expenditures of Toronto Police Force"
 author: 
   - Meha Grewal
-thanks: "Code and data are available at: LINK."
+thanks: "Code and data are available at: https://github.com/meha-g/FinalPaper."
 date: "`r format(Sys.time(), '%d %B %Y')`"
-abstract: "In this paper we will explore the budget of the Toronto Police Force and examine the implications of their fiscal responsibilities. Through the understanding of the central influences of the police force, we can determine how to effectively distribute resources and funding. These findings provide rationale for policy decisions."
+abstract: "In this paper we will explore the budget of the Toronto Police Service and examine the implications of their fiscal responsibilities. Through the understanding of the central influences of the police force, we can determine how to effectively distribute resources and funding. These findings provide rationale for policy decisions."
 output:
   bookdown::pdf_document2
 toc: FALSE
@@ -16,86 +16,199 @@ bibliography: references.bib
 knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
+library(knitr)
+library(modelsummary)
 ```
 
-```{r}
-data <- read.csv("/Users/meha/Downloads/TPS Budget 2021.csv")
+```{r, include=FALSE}
+#Loading data set
+library(opendatatoronto)
+library(dplyr)
+
+# get package
+package <- show_package("668434ee-9541-40a8-adb6-0ad805fcc9b6")
+package
+
+# get all resources for this package
+resources <- list_package_resources("668434ee-9541-40a8-adb6-0ad805fcc9b6")
+
+# identify datastore resources; by default, Toronto Open Data sets datastore resource format to CSV for non-geospatial and GeoJSON for geospatial resources
+datastore_resources <- filter(resources, tolower(format) %in% c('csv', 'geojson'))
+
+# load the first datastore resource as a sample
+data_open <- filter(datastore_resources, row_number()==1) %>% get_resource()
+data_open
 ```
 
 # Introduction
 
-You can and should cross-reference sections and sub-sections. For instance, Section \@ref(data). R Markdown automatically makes the sections lower case and adds a dash to spaces to generate labels, for instance, Section \@ref(first-discussion-point). 
+The Toronto Police Service (TPS) are supposed to be the upholders of law and order. They provide a sense of safety to the community and work to prevent and solve criminal cases. The budget for the the TPS is highly significant as it allows them the ability to safely govern the city. To identify the most influential aspects of the TPS budget and thus the parts of policing that they deem as priority, I will analyze the relevant variables and model them. I explore their expenditures and fiscal responsibilities for 2021 and its implications in providing safety for residents of Toronto. 
 
-The Toronto Police Force (TPF) are supposed to be the upholders of law and order. They provide a sense of safety to the community and work to prevent and solve criminal cases. The budget for the the TPF is highly significant as it allows them the ability to safely govern the city. To identify the most influential aspects of the TPF budget and thus the parts of policing that they deem as priority, we will analyze the relevant variables and model them. We explore their expenditures and fiscal responsibilities for 2021 and its implications in providing safety for residents of Toronto. 
+Conducting an exploratory analysis on the budget for TPS would indicate areas that the government prioritizes. Utilizing the dollar amount as the response variable, we can conclude the largest predictors for police force expenditures and its implications. This information can be applied by government officials and policy makers to minimize government spending and allocate finances to areas that most necessitate it. 
 
-Conducting an exploratory analysis on the budget for TPF would indicate areas that the government prioritizes. Utilizing the dollar amount as the response variable, we can conclude the largest predictors for police force expenditures and its implications. This information can be applied by government officials and policy makers to minimize government spending and allocate finances to areas that most necessitate it. 
+Beginning with a general overview of the variables provided in the data, I visually identified where majority of the budget is spent on. Through a multiple linear regression model, I was able to determine the most statistically significant variables. This indicates what portions of the police force have the most influence over the budget and the priorities of the force. By analyzing each predictor to understand its importance, I then considered the broader societal implications. The linear regression indicates how finances are allocated and which districts and units relieve the largest portions of the budget. By determining what districts and categories within the police force require the most funding, we can evaluate the future of the force. This analysis provides the determining factors of the fiscal responsibilities for the police and showcases what areas require more resources. Policy decisions influence the acceptable expenditures of the TPS and this paper aims to understand the ramifications of the budget distribution. 
 
-Beginning with a general overview of the variables provided in the data, we visually identified where majority of the budget is spent on. Through a multiple linear regression model, we were able to determine the most statistically significant variables. This indicates what portions of the police force have the most influence over the budget and the priorities of the force. By analyzing each predictor to understand its importance, we then considered the broader societal implications. The linear regression indicates how finances are allocated and which districts and units relieve the largest portions of the budget. By determining what districts and categories within the police force require the most funding, we can evaluate the future of the force. This analysis provides the determining factors of the fiscal responsibilities for the police and showcases what areas require more resources. Policy decisions influence the acceptable expenditures of the TPF and this paper aims to understand the ramifications of the budget distribution. 
-
-The data set provided by the city of Toronto showcases information regarding actual expenditures from the police force in 2021. By examining the relevant summary statistics and plots, we are able to identify key predictors for our model. We then model the data using the amount for the budget as the response variable and conduct a multiple linear regression. This was done to predict the budget and the crucial components. Our discussion includes the understanding of our model and how it was assembled. Lastly, we consider the social implications of the model and how the budget has an impact on safety in Toronto. 
-
+The data set provided by the city of Toronto showcases information regarding actual expenditures from the police force in 2021. By examining the relevant summary statistics and plots, I am able to identify key predictors for our model. I then model the data using the amount for the budget as the response variable and conduct a multiple linear regression. This was done to predict the budget and the crucial components. My discussion includes the understanding of our model and how it was assembled. Lastly, I consider the social implications of the model and how the budget has an impact on safety in Toronto. 
 
 
 # Data
 
-Our data is of penguins (Figure \@ref(fig:bills)).
+## Data Source
 
-```{r bills, fig.cap="Bills of penguins", echo = FALSE}
-ggplot(penguins, aes(x = island, fill = species)) +
-  geom_bar(alpha = 0.8) +
-  scale_fill_manual(values = c("darkorange","purple","cyan4"),
-                    guide = FALSE) +
-  theme_minimal() +
-  facet_wrap(~species, ncol = 1) +
-  coord_flip()
+This data was obtained from the Open Data Toronto portal [@citeopendata], which is accessible due to the City of Toronto. It is a breakdown of the approved budget for TPF and actual expenditures. The data was collected in the fiscal year of 2021 and was published by Toronto Police Services. The budget indicates expenses for the operation of TPF approved by City Council and the Toronto Police Services Board. The raw data includes 2,755 observations of 12 variables, and the data was last refreshed on October 20, 2021. An exploratory data analysis was done on the data using `R statistical programming` [@citeR]. The data was cleaned and manipulated for modelling using `tidyverse` [@citetidyverse], `knitr` [@citeknitr], `dplyr` [@citedplyr], and `modelsummary`[@citeModel].
+
+## Variables 
+
+The data collected by the Toronto Police Service includes many variables that explain the budget amount, the organization within TPS, name of the command, pillar, district, and unit. It also includes the feature category which classifies the expenditure, and the cost elements. The dollar amount variable is the most significant sub-section of the data I will be analyzing. The other notable variables will be used as predictors for the budget. 
+
+To begin with, I removed the variables for budget type and fiscal year as each data point was the same, all the points in this data set were from the fiscal year 2021 and were approved for the budget. Furthermore, the column for command name and district type were removed as they were similar to pillar name. (Table \@ref(tab:preview)) showcases a preview of the data but only including the pillar name, unit name, feature category, and budget amount. The table showcases the top ten budget expenditures for the TPS in the descending order. Since it is just a brief preview of the data, only the most essential columns are included. 
+
+
+```{r preview, echo=FALSE}
+#Data Cleaning
+#Drop Budget_Type and "Fiscal_Year, "Pillar_Name", "Command_Name"
+dat <- data_open[-c(2, 3, 5, 7)]
+
+#Exploration of Variables
+#Summary Statistics
+#Preview of data with top 10 police budgets
+data1 <- dat[order(dat$Amount, decreasing = TRUE),]
+data_prev <- data1[-c(1, 2, 6, 7)]
+data_prev %>%  
+  slice(1:10) %>% 
+  kable(
+    caption = "Top ten budget expenditures for Toronto Police Budget",
+    col.names = c("Pillar Name", "Unit Name", "Feature Category", "Amount"),
+    booktabs = TRUE,
+    linesep = " "
+  )
 ```
 
-Talk more about it.
+Based off (Table \@ref(tab:preview)), a large portion of budget expenses can be attributed to the salaries of those employed by the police force. Only one data point in the top ten budget expenditures for feature category is associated with benefits while every other expense is due to salaries. Additionally, pillar name includes many points in this table from the East Field Command or the West Field Command, indicating that commandments and particularly those two, require higher budgets. 
 
-Also bills and their average (Figure \@ref(fig:billssssss)). (Notice how you can change the height and width so they don't take the whole page?)
+## Features
 
-```{r billssssss, fig.cap="More bills of penguins", echo = FALSE, fig.width=8, fig.height=4}
-
-# This needs to be about the random data tha tI sasmpled?
-ggplot(penguins, aes(x = island, fill = species)) +
-  geom_bar(alpha = 0.8) +
-  scale_fill_manual(values = c("darkorange","purple","cyan4"),
-                    guide = FALSE) +
-  theme_minimal() +
-  facet_wrap(~species, ncol = 1) +
-  coord_flip()
+```{r amount, echo=FALSE, warning=FALSE, message=FALSE}
+#Plots
+dat %>% 
+  ggplot(aes(x = Amount, fill = Feature_Category)) +
+  geom_histogram() +
+  scale_x_log10() +
+  labs(x = "Amount",
+       y = "Count",
+       fill = "Feature Category",
+       title = "Distribution of Amount and Feature Category")
+  #scale_x_continuous(breaks = seq(-50000000,50000000, by=10000000 ))
 ```
 
-Talk way more about it. 
+(Figure \@ref(fig:amount)) displays the distribution of budget expenditures for the TPS, grouped by feature category. The amount of expenses is right skewed and follows a unimodal distribution. Expenses within the salaries category has the largest distribution as it reaches the highest amount, this corresponds with (Table \@ref(tab:preview)) where the highest budgets were for salaries. 
+
+```{r pillar, echo=FALSE}
+dat %>% 
+  ggplot(aes(x = Amount, y = Pillar_Name)) +
+  geom_point() +
+  labs(x = "Amount",
+       y = "Pillar Name",
+       title = "Relationship between Amount and Pillar Name")
+```
+
+(Figure \@ref(fig:pillar)) is a scatter plot of the relationship between budget amount and pillar name which determines where the expense is for. The East Field Command and Detective Operations appear to have outliers, with East Field Command also having a large negative outlier. The largest expenditures derive from West Field Command, East Field Command, Detective Operations, and Centralized Service Charges. This information is useful in determining which sections of the police force require the most or least funding, it can be used for future budget determinations. 
 
 
+## Methodology
+
+```{r, include=FALSE}
+#Turn Pillar_Name into a numerical variable and 
+table(dat$Cost_Element_Long_Name)
+
+#New variable that is 1 if pillar_name is a command
+data_command <-
+  dat %>% 
+  mutate(is_command = if_else(Pillar_Name == "East Field Command" | 
+                   Pillar_Name == "Human Resources Command" |
+                   Pillar_Name == "Communities & Neighbourhoods Command" |
+                   Pillar_Name == "Corporate Support Command" |
+                   Pillar_Name == "Information Technology Command" |
+                   Pillar_Name == "Priority Response Command" |
+                   Pillar_Name == "Specialized Operations Command" |
+                   Pillar_Name == "West Field Command", 1 , 0))
+
+#New variable that is just numerical value for organization_entity 
+data_org <-
+  data_command %>% 
+  mutate(organization_num = case_when(Organization_Entity <= "1 - Toronto Police Service" ~ 1, 
+                   Organization_Entity == "2 - TPS Board" ~ 2,
+                   Organization_Entity == "3 - Parking Enforcement Unit" ~ 3))
+
+#New variable is 1 if cost_element_long_name is a revenue or salary
+data_mod <-
+  data_org %>% 
+  mutate(rev_or_sal = if_else(grepl("Salaries", Cost_Element_Long_Name,
+                                    ignore.case = TRUE), 1, 0))
+
+data_fin <- na.omit(data_mod)
+
+```
+
+To model this data for an exploratory data analysis, the data set was manipulated. I created numerical variables that would allow for a multiple linear regression to be done and statistical significance be tested. I constructed a dummy variable that indicates whether the budget expense was for a command, or other service. Similarly, I built a dummy variable that determined whether the budget was spent on salaries or another category. These variables were created for the model to see whether salaries or commands have a strong impact on the budget. Another variable was made to just assign a numerical value to the organization entity, ranging from 1 to 3.
+
+```{r sumtable, echo=FALSE}
+#Summary statistics for dataset with new variables
+data_fin[-c(1)] %>% 
+  datasummary_skim(title = "Summary of discrete variables for TPS budget")
+```
+(Table \@ref(tab:sumtable)) showcases the summary statistics for the discrete variables in the data set. This includes the amount from the budget, alongside the three new numerical variables constructed for the model. 
 
 # Model
 
+## Multiple Linear Regression
+
+To analyze the budget of the TPF and how different variables impact the expenditures of the police force, I created a model using a multiple linear regression. 
+
+```{r, include=FALSE}
+set.seed(304)
+regress <- 
+  lm(Amount ~ is_command + organization_num + rev_or_sal + Feature_Category, 
+     data = data_fin)
+
+summary(regress)
+```
+
+
+
 \begin{equation}
-Pr(\theta | y) = \frac{Pr(y | \theta) Pr(\theta)}{Pr(y)}  (\#eq:bayes)
+Y_i = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \beta_3 X_3 + \epsilon_i
 \end{equation}
 
-Equation \@ref(eq:bayes) seems useful, eh?
 
-Here's a dumb example of how to use some references: In paper we run our analysis in `R` [@citeR]. We also use the `tidyverse` which was written by @thereferencecanbewhatever If we were interested in baseball data then @citeLahman could be useful. 
 
 We can use maths by including latex between dollar signs, for instance $\theta$.
+
+
+
+Predictor variable: Amount
+Explanatory variables: 
+
+```{r, echo=FALSE}
+modelsummary(regress,
+             title = "Explaining TPF budget based on whether it is a command, organization
+             entity, and feature category")
+
+```
+Validity:
 
 
 # Results
 
 # Discussion
 
-## First discussion point
+## Findings
 
 If my paper were 10 pages, then should be be at least 2.5 pages. The discussion is a chance to show off what you know and what you learnt from all this. 
 
-## Second discussion point
+## Implications
 
-## Third discussion point
-
-## Weaknesses and next steps
+## Limitations and next steps
 
 Weaknesses and next steps should also be included.
 
