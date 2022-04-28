@@ -89,7 +89,7 @@ Based off (Table \@ref(tab:preview)), a large portion of budget expenses can be 
 
 ## Features
 
-```{r amount, echo=FALSE, warning=FALSE, message=FALSE}
+```{r amount, echo=FALSE, warning=FALSE, message=FALSE, fig.height = 3, fig.width = 7}
 #Plots
 dat %>% 
   ggplot(aes(x = Amount, fill = Feature_Category)) +
@@ -98,22 +98,22 @@ dat %>%
   labs(x = "Amount",
        y = "Count",
        fill = "Feature Category",
-       title = "Distribution of Amount and Feature Category")
+       title = "Figure 1: Distribution of Amount and Feature Category")
   #scale_x_continuous(breaks = seq(-50000000,50000000, by=10000000 ))
 ```
 
-(Figure \@ref(fig:amount)) displays the distribution of budget expenditures for the TPS, grouped by feature category. The amount of expenses is right skewed and follows a unimodal distribution. Expenses within the salaries category has the largest distribution as it reaches the highest amount, this corresponds with (Table \@ref(tab:preview)) where the highest budgets were for salaries. 
+(Figure 1) displays the distribution of budget expenditures for the TPS, grouped by feature category. The amount of expenses is right skewed and follows a unimodal distribution. Expenses within the salaries category has the largest distribution as it reaches the highest amount, this corresponds with (Table \@ref(tab:preview)) where the highest budgets were for salaries. 
 
-```{r pillar, echo=FALSE}
+```{r pillar, echo=FALSE, fig.height = 3, fig.width = 7}
 dat %>% 
   ggplot(aes(x = Amount, y = Pillar_Name)) +
   geom_point() +
   labs(x = "Amount",
        y = "Pillar Name",
-       title = "Relationship between Amount and Pillar Name")
+       title = "Figure 2: Relationship between Amount and Pillar Name")
 ```
 
-(Figure \@ref(fig:pillar)) is a scatter plot of the relationship between budget amount and pillar name which determines where the expense is for. The East Field Command and Detective Operations appear to have outliers, with East Field Command also having a large negative outlier. The largest expenditures derive from West Field Command, East Field Command, Detective Operations, and Centralized Service Charges. This information is useful in determining which sections of the police force require the most or least funding, it can be used for future budget determinations. 
+(Figure 2) is a scatter plot of the relationship between budget amount and pillar name which determines where the expense is for. The East Field Command and Detective Operations appear to have outliers, with East Field Command also having a large negative outlier. The largest expenditures derive from West Field Command, East Field Command, Detective Operations, and Centralized Service Charges. This information is useful in determining which sections of the police force require the most or least funding, it can be used for future budget determinations. 
 
 
 ## Methodology
@@ -165,6 +165,12 @@ data_fin[-c(1)] %>%
 To analyze the budget of the TPF and how different variables impact the expenditures of the police force, I created a model using a multiple linear regression. This was done to identify a relationship between amount and salaries, command, and organization within the police force. This model was appropriate for this data set as we are examining linear relationships for exploratory variables with the predictor variable, which is amount.
 
 ```{r, include=FALSE}
+regress1 <- 
+  lm(Amount ~ Feature_Category, 
+     data = data_fin)
+
+
+
 regress <- 
   lm(Amount ~ is_command + organization_num + rev_or_sal + Feature_Category, 
      data = data_fin)
@@ -172,32 +178,85 @@ regress <-
 summary(regress)
 ```
 
-
 \begin{equation}
-Y_i = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \beta_3 X_3 + \beta_3 X_3 + \epsilon_i
+Y_i = \beta_0 + \beta_1 X_1 + \epsilon_i
 \end{equation}
 
-In this model, $Y_i$ is the budget amount and $\beta_0$ is the intercept or the predicted value when all other variables are zero. $X_1$ is whether the expense if for a command, $X_2$ is the organizational entity, $X_3$ is whether the expense is a salary, and $X_4$ is the feature category.
+Equation 1 follows the first model which is just a simple linear regression with amount only being explained by feature category. Equation 2 includes three more variables to explain more variability in the model and transform it into a multiple linear regression 
+
+\begin{equation}
+Y_i = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \beta_3 X_3 + \beta_4 X_4 + \epsilon_i
+\end{equation}
+
+In this model for Equation 2, $Y_i$ is the budget amount and $\beta_0$ is the intercept or the predicted value when all other variables are zero. $X_1$ is whether the expense if for a command, $X_2$ is the organizational entity, $X_3$ is whether the expense is a salary, and $X_4$ is the feature category.
 
 A multiple linear regression was selected because amount is the variable of interest and this paper is examining what factors impact the budget. 
 
 
 # Results
 
-```{r, echo=FALSE}
-modelsummary(regress,
+```{r modsum, echo=FALSE}
+modelsummary(list(regress1,
+                  regress),
              title = "Explaining TPF budget based on whether it is a command, organization
-             entity, and feature category")
+             entity, salary, and feature category")
 
 ```
+(Table 3) summarizes the results of the two models. Model 1 is a simple linear regression that only includes feature category as a predictor, but it is a categorical variable, that is why there are many rows devoted to the variable. Model 2 includes three more variables to help explain the model. The adjusted R-squared in model 1 is 0.057, whereas the adjusted R-squared is 0.105 in model 2. This demonstrates how adding more predictors was beneficial to the model as the R-squared almost doubled, meaning much more variation in the model is explained. However, it still remains a small value, thus the model is not entirely effective at understanding the TPS budget. 
 
 
-```{r}
+
+```{r featis, echo=FALSE, fig.height = 3, fig.width = 7}
+data_fin %>% 
+  ggplot(aes(x=Amount, y=Feature_Category, color = is_command)) +
+  geom_point() +
+  geom_smooth(method = "lm",
+              color = "black",
+              linetype = "dashed",
+              formula = 'y ~ x') +
+  theme_classic() +
+  labs(x = "Amount",
+       y = "Feature Category",
+       color = "Is Command",
+       title = "Figure 3: Feature Category Budget and Is Command") 
 
 ```
+(Figure 3) emphasizes the relationship between budget and feature category, organized by whether the expense was for a command or not. It can be seen that the salaries category tends to have a higher allocation of the budget. Moreover, the salaries data points also have a lighter distribution, meaning more of the budget goes to commands. 
 
 
+```{r revorg, echo=FALSE, fig.height = 3, fig.width = 7}
+data_fin %>% 
+  ggplot(aes(x=Amount, y=rev_or_sal, color = organization_num)) +
+  geom_point() +
+  geom_smooth(method = "lm",
+              color = "black",
+              linetype = "dashed",
+              formula = 'y ~ x') +
+  theme_classic() +
+  labs(x = "Amount",
+       y = "Salary or Other",
+       color = "Organization Entity",
+       title = "Figure 4: Salary or Not Budget and Organization Entity")
 
+```
+(Figure 4) displays a linear model for the budget amount based on variables salary or not and organization entity. 1 indicates the expense was for salaries and 0 indicates it was for another reason. This plot highlights that expenses allocated for salaries tend to have higher budgets, the linear regression line also showcases this. In addition, majority of points are darker, especially the points with larger amounts. Organizational entity 1 means the Toronto Police Service, 2 means the TPS board, and 3 means parking enforcement. This plot illustrates that the bulk of the budget is for the TPS.
+
+
+```{r orgrev, echo=FALSE, fig.height = 3, fig.width = 7}
+data_fin %>% 
+  ggplot(aes(x=Amount, y=organization_num, color = Feature_Category)) +
+  geom_point() +
+  geom_smooth(method = "lm",
+              color = "black",
+              linetype = "dashed",
+              formula = 'y ~ x') +
+  theme_classic() +
+  labs(x = "Amount",
+       y = "Organization Entity",
+       color = "Salary or Other",
+       title = "Figure 5: Organization Entity Budget and Feature  Category") 
+```
+(Figure 5) includes the variables organization entity and budget, classified by feature category. As established in Figure 4 and Figure 3, data points with larger budgets tend to be for salaries and organization entity 1 which is the TPS. These conclusions can be summarized in the distribution of (Figure 5), the flat linear regression line indicates that the TPS board and parking enforcement unit have a very small portion of the budget allocated to them.
 
 # Discussion
 
@@ -209,7 +268,7 @@ If my paper were 10 pages, then should be be at least 2.5 pages. The discussion 
 
 ## Limitations and next steps
 
-Weaknesses and next steps should also be included.
+To begin with, a limitation in the model exists as feature category and salary or other variables are correlated with each other.
 
 \newpage
 
