@@ -5,7 +5,7 @@ author:
   - Meha Grewal
 thanks: "Code and data are available at: https://github.com/meha-g/FinalPaper."
 date: "`r format(Sys.time(), '%d %B %Y')`"
-abstract: "In this paper we will explore the budget of the Toronto Police Service and examine the implications of their fiscal responsibilities. Through the understanding of the central influences of the police force, we can determine how to effectively distribute resources and funding. These findings provide rationale for policy decisions."
+abstract: "In this paper we will explore the budget of the Toronto Police Service and examine the implications of their fiscal responsibilities. Through the understanding of the central influences of the police force, we can determine how to effectively distribute resources and funding. These findings provide rationale for policy decisions as they indicate how significant salaries are to the police force."
 output:
   bookdown::pdf_document2
 toc: FALSE
@@ -169,8 +169,6 @@ regress1 <-
   lm(Amount ~ Feature_Category, 
      data = data_fin)
 
-
-
 regress <- 
   lm(Amount ~ is_command + organization_num + rev_or_sal + Feature_Category, 
      data = data_fin)
@@ -262,13 +260,19 @@ data_fin %>%
 
 ## Findings
 
-If my paper were 10 pages, then should be be at least 2.5 pages. The discussion is a chance to show off what you know and what you learnt from all this. 
+The results illustrate the priorities of the TPS. By understanding the statistically significant factors that influence the budget, we can recognize the different facets of the data set. Overall, salaries are highly statistically significant in regards to the TPS expenditure. This corresponds with the varying plots and tables included in this paper. It can be concluded that the salary variable included in the model, alongside the feature category variable are both significant and have a relation with the budget. For feature categories, salaries have higher values in terms of dollar amount compared to the other categorical values. The larger budget expenses also correspond with the TPS organization but that does not mean it is significant since a higher proportion of the data is from TPS, rather than the other organizations. Thus, the higher expenses could just be due to the larger portion of data points.
 
 ## Implications
 
+Based off this analysis, a number of conclusions can be made in regards to the TPS annual budget. Salaries are definitively a large portion of the budget and significant in explaining variation within the model. This can have wide implications for policy planning in the City of Toronto. If it is known that the government is spending a large amount on salaries for employees of the TPS, then that category may be predominantly impacted if budget cuts were required. This would eventually accumulate to a series of lay offs. Further, if there was a budget surplus, using this data, policy planners could appropriately give more funding to sub-divisions that need it. This data has much potential as it could be paired with various data sets that could provide further context and wider motivations for policy decisions. Utilizing other data sources with these results can identify areas in need of more safety and their corresponding funding, which can influence governmental leaders and their financial decisions.
+
 ## Limitations and next steps
 
-To begin with, a limitation in the model exists as feature category and salary or other variables are correlated with each other.
+To begin with, a limitation within this paper persists as dummy variables are included in the model, but this variables only indicate results for certain categories. Thus, other categories that had the potential to be statistically significant in the model were excluded. Moreover, another limitation in the model exists as feature category and variable indicating salary are correlated with each other. Since salaries is included in feature category, this implies that the two variables would correlate with each other and threaten the validity of the model. 
+
+For the future, I would create more models that experiment with a variety of different variables. Additionally, I would focus and prioritize the assumptions of the model more. The model failed to incorporate different categories that could potentially explain more of the budget. Simultaneously, more data sets could be used in understanding the expenditures of the TPS. Through different data sets that also address the Toronto Police force, I can identify a stronger explanation for the budget as well as broader implications of the model. A stronger emphasis on safety by adding different data sets can be useful for policy planners in the future.
+
+
 
 \newpage
 
@@ -306,19 +310,19 @@ To begin with, a limitation in the model exists as feature category and salary o
 8. *Are there recommended data splits (for example, training, development/validation, testing)? If so, please provide a description of these splits, explaining the rationale behind them.*
 	- There are no recommended data splits. 
 9. *Are there any errors, sources of noise, or redundancies in the dataset? If so, please provide a description.*
-	- TBD
+	- There are missing values in the dataset that may be errors, otherwise no errors.
 10. *Is the dataset self-contained, or does it link to or otherwise rely on external resources (for example, websites, tweets, other datasets)? If it links to or relies on external resources, a) are there guarantees that they will exist, and remain constant, over time; b) are there official archival versions of the complete dataset (that is, including the external resources as they existed at the time the dataset was created); c) are there any restrictions (for example, licenses, fees) associated with any of the external resources that might apply to a dataset consumer? Please provide descriptions of all external resources and any restrictions associated with them, as well as links or other access points, as appropriate.*
-	- TBD
+	- The dataset is self-contained, no other resources are required.
 11. *Does the dataset contain data that might be considered confidential (for example, data that is protected by legal privilege or by doctor-patient confidentiality, data that includes the content of individuals' non-public communications)? If so, please provide a description.*
-	- TBD
+	- There is no confidential data as this was made publicly available by the municipial government.
 12. *Does the dataset contain data that, if viewed directly, might be offensive, insulting, threatening, or might otherwise cause anxiety? If so, please describe why.*
-	- TBD
+	- There is no offensive or insulting data as the dataset only pertains to the fiscal expenditures of the Toronto Police Force.
 13. *Does the dataset identify any sub-populations (for example, by age, gender)? If so, please describe how these subpopulations are identified and provide a description of their respective distributions within the dataset.*
-	- TBD
+	- There are no identities in this dataset.
 14. *Is it possible to identify individuals (that is, one or more natural persons), either directly or indirectly (that is, in combination with other data) from the dataset? If so, please describe how.*
-	- TBD
+	- This dataset does not include any information on individuals, thus it is impossible to identify anyone.
 15. *Does the dataset contain data that might be considered sensitive in any way (for example, data that reveals race or ethnic origins, sexual orientations, religious beliefs, political opinions or union memberships, or locations; financial or health data; biometric or genetic data; forms of government identification, such as social security numbers; criminal history)? If so, please provide a description.*
-	- TBD
+	- There is no sensitive data in this dataset since it is mainly categorizations of expenses for the Toronto Police Service.
 
 **Collection process**
 
